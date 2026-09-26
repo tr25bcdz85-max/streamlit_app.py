@@ -110,6 +110,12 @@ def crc(valor):
     return f"₡{valor:,.0f}".replace(",", ".")
 
 
+def crc_pdf(valor):
+    """Como crc() pero ASCII-safe: Helvetica (reportlab) no trae el
+    glifo ₡ y lo dibuja como ■. En el PDF se usa 'CRC 1.362.800'."""
+    return f"CRC {valor:,.0f}".replace(",", ".")
+
+
 def fecha_corta(valor):
     """YYYY-MM-DD para datetimes/Timestamps; '—' si es nulo."""
     if valor is None or (not isinstance(valor, str) and pd.isna(valor)):
@@ -368,7 +374,7 @@ def exportar_pdf(path_pdf, df_conciliado, df_sin_factura, resumen,
                   estilos["Title"]),
         Paragraph(f"Fecha de corte: {corte} &nbsp;&nbsp;|&nbsp;&nbsp; "
                   f"Fecha de generación: {date.today().isoformat()} "
-                  f"&nbsp;&nbsp;|&nbsp;&nbsp; Tolerancia: {crc(tolerancia)} "
+                  f"&nbsp;&nbsp;|&nbsp;&nbsp; Tolerancia: {crc_pdf(tolerancia)} "
                   f"&nbsp;&nbsp;|&nbsp;&nbsp; Proveedor: {proveedor_filtro}",
                   estilos["Normal"]),
         Spacer(1, 12),
@@ -378,7 +384,7 @@ def exportar_pdf(path_pdf, df_conciliado, df_sin_factura, resumen,
     tabla_res = [["Estado", "Facturas", "Monto"]]
     for estado in ESTADOS:
         r = resumen[estado]
-        tabla_res.append([estado, str(r["conteo"]), crc(r["monto"])])
+        tabla_res.append([estado, str(r["conteo"]), crc_pdf(r["monto"])])
     t = Table(tabla_res, colWidths=[220, 80, 150])
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(AZUL_OSCURO)),
@@ -399,9 +405,9 @@ def exportar_pdf(path_pdf, df_conciliado, df_sin_factura, resumen,
             str(f["Num_Factura"]),
             str(f["Proveedor"])[:24],
             fecha_corta(f["Fecha_Vencimiento"]),
-            crc(f["Monto_CRC"]),
-            crc(f["Monto_Pagado"]),
-            crc(f["Diferencia"]) if f["Num_Pagos"] else "—",
+            crc_pdf(f["Monto_CRC"]),
+            crc_pdf(f["Monto_Pagado"]),
+            crc_pdf(f["Diferencia"]) if f["Num_Pagos"] else "—",
             f["Estado"],
         ])
     ta = Table(tabla_al, colWidths=[55, 120, 60, 65, 65, 65, 90], repeatRows=1)
@@ -421,7 +427,7 @@ def exportar_pdf(path_pdf, df_conciliado, df_sin_factura, resumen,
         tabla_r9.append([
             str(p["Referencia_Pago"]),
             str(p["Num_Factura"]),
-            crc(p["Monto_Pagado_CRC"]),
+            crc_pdf(p["Monto_Pagado_CRC"]),
             str(p["Cuenta_Bancaria"]),
         ])
     tr9 = Table(tabla_r9, colWidths=[90, 90, 90, 150], repeatRows=1)
